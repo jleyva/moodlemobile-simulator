@@ -3,7 +3,7 @@
     <head>
         <title>Moodle Mobile Simulator</title>
         <link rel="stylesheet" href="styles.css">
-        <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+        <script src="jquery.min.js"></script>
         <script src="simulator.js"></script>
     </head>
     <body>
@@ -20,7 +20,8 @@
             Device: <select id="device"></select>
             Moodle site: <select id="site"></select>
             App version: <select id="version"></select>
-            <input type="button" id="run" value="Launch app">
+            <input type="button" id="run" value="Launch app"><br />
+            Local path (only for testing under file://): <input type="text" id="local_path" value="" size="40">
         </div>
         <div style="padding-top: 15px; width: 240px">
             <p><label><input type="checkbox" id="force-offline">Force OFFLINE mode</label></p>
