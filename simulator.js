@@ -1,3 +1,5 @@
+window.MOODLE_MOBILE_SIMULATOR = 1;
+
 var devices = {
     iPhone4: {
         width: 320,
@@ -48,12 +50,13 @@ var sites = {
         username: "student",
         password: "moodle",
         protocol: "http://"
-    },
-}
+    }
+};
 var versions = {
     master_dev: "http://prototype.moodle.net/mobile/app/master",
     v143: "http://prototype.moodle.net/mobile/app/v143",
-    mock: "http://prototype.moodle.net/mobile/app/mock"
+    mock: "http://prototype.moodle.net/mobile/app/mock",
+    local_path: ""
 };
 $(document).ready(function(){
     var device = $("#device");
@@ -68,11 +71,19 @@ $(document).ready(function(){
         viewport.css("width", devices[sel].width).css("height", devices[sel].height);
         container.css("width", devices[sel].width + 40);
         // Force reset of local database/storage.
-        iframe.attr("src", versions[version.val()] + "/reset.html");
+        if (version.val() == "local_path") {
+            iframe.attr("src", $("#local_path").val() + "/reset.html");
+        } else {
+            iframe.attr("src", versions[version.val()] + "/reset.html");
+        }
         iframe.load(function() {
+            var data;
+
             var fd = iframe[0].contentWindow;
             var doc = fd.document;
-            var data = sites[site.val()];
+            var siteId = site.val();
+            data = sites[siteId];
+
             setTimeout(function() {
                 $('#url', doc).val(data.url);
                 $('#username', doc).val(data.username);
