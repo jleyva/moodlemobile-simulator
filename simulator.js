@@ -211,5 +211,6 @@ $(document).ready(function(){
           heightStyle: "fill"
         }
     );
+    $("#setting-tabs").tabs();
 
 });
