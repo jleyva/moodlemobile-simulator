@@ -2,8 +2,9 @@
 body {
     background-color:#333;
     color:white;
-    font: 70% "Trebuchet MS", sans-serif;
+    font: 62% "Trebuchet MS", sans-serif;
 }
+
 #simulator-container {
     position: absolute;
     margin-left: 250px;
@@ -41,6 +42,11 @@ body {
 .ul-clean {
     list-style: none;
     padding: 0px;
+}
+
+.ul-clean .ui-icon{
+    display: inline;
+    float: right;
 }
 
 /* jQuery UI changes*/

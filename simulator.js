@@ -203,6 +203,26 @@ $(document).ready(function(){
         window.alert("You should run this emulator in a WebKit browser (Chrome or Safari)");
     }
 
+    // Loading sites and apps.
+    sites = localStorage.getItem('mms-sites');
+    if (!sites) {
+        sites = [];
+        sites.push(
+            {
+                name: "Moodle School Demo",
+                url: "http://school.moodle.net",
+                username: "student",
+                password: "moodle",
+            }
+        );
+    }
+    var siteList = '';
+    $.each(sites, function(i, s) {
+        siteList += '<li> ' + s.name + ' <span data-siteid="' + i + '" class="ui-icon ui-icon-pencil"></span></li>';
+    });
+
+    $("#tabs-sites ul").empty().append(siteList);
+
     // Styles code.
     $( "input[type=submit], input[type=button], button" ).button();
     $("select").selectmenu({ width: 120 });
