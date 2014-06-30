@@ -203,4 +203,13 @@ $(document).ready(function(){
         window.alert("You should run this emulator in a WebKit browser (Chrome or Safari)");
     }
 
+    // Styles code.
+    $( "input[type=submit], input[type=button], button" ).button();
+    $("select").selectmenu({ width: 120 });
+    $("#options-menu").accordion(
+        {
+          heightStyle: "fill"
+        }
+    );
+
 });

@@ -2,8 +2,14 @@
 body {
     background-color:#333;
     color:white;
-    font-family:Arial;
+    font: 70% "Trebuchet MS", sans-serif;
 }
+#simulator-container {
+    position: absolute;
+    margin-left: 250px;
+    top: 50px
+}
+
 #device-container {
     background-color:#222;
     margin:auto;
@@ -28,4 +34,17 @@ body {
 #moodle-site {
     width:inherit;
     height:inherit;
+}
+#options-menu {
+    width: 240px;
+}
+.ul-clean {
+    list-style: none;
+    padding: 0px;
+}
+
+/* jQuery UI changes*/
+
+.ui-accordion .ui-accordion-content {
+    padding: 1em;
 }

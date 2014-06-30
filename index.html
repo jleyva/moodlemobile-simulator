@@ -2,13 +2,15 @@
 <html>
     <head>
         <title>Moodle Mobile Simulator</title>
+        <link rel="stylesheet" href="jquery-ui.min.css">
         <link rel="stylesheet" href="styles.css">
         <script src="jquery.min.js"></script>
+        <script src="jquery-ui.min.js"></script>
         <script src="simulator.js"></script>
     </head>
     <body>
         <h1>Moodle Mobile simulator</h1>
-        <div style="position: absolute; margin-left: 250px; top: 120px">
+        <div id="simulator-container">
             <div id="device-container">
                 <div id="device-status" style="height: 20px"></div>
                 <div id="viewport-container">
@@ -16,28 +18,44 @@
                 </div>
             </div>
         </div>
-        <div id="settings">
-            Device: <select id="device"></select>
-            Moodle site: <select id="site"></select>
-            App version: <select id="version"></select>
-            <input type="button" id="run" value="Launch app"><br />
-            Local path (only for testing under file://): <input type="text" id="local_path" value="" size="40">
-        </div>
-        <div style="padding-top: 15px; width: 240px">
-            <p><label><input type="checkbox" id="force-offline">Force OFFLINE mode</label></p>
-            <p><label><input type="checkbox" id="disable-extended">Disable extended features (local_mobile)</label></p>
-            Rotate:<br/>
-            <input type="button" id="rotate" value="Rotate">
-        </div>
-        <div style="padding-top: 15px; width: 240px">
-            CSS injection:<br/>
-            <input type="url" id="css-url" value="" placeholder="CSS URL" style="width: 100%"><br/>
-            <textarea id="css-text" placeholder="CSS code" style="width: 100%"></textarea><br/>
-            <input type="button" id="inject-css" value="Start injecting">&nbsp;&nbsp;
-            <input type="button" id="stop-inject-css" value="Stop injecting"><br/>
-            <input type="button" id="reset-css" value="Reset CSS">
-        </div>
-        <div id="log">
-        </div>
+        <div id="options-menu">
+            <h3>Launch</h3>
+            <div>
+                <ul class="ul-clean">
+                    <li>Device: <select id="device"></select></li>
+                    <li>Moodle site: <select id="site"></select></li>
+                    <li>App version: <select id="version"></select></li>
+                </ul>
+                <input type="button" id="run" value="Launch app"><br />
+                Local path (only for testing under file://): <input type="text" id="local_path" value="" size="40">
+            </div>
+            <h3>General</h3>
+            <div>
+                <p><label><input type="checkbox" id="force-offline">Force OFFLINE mode</label></p>
+                <p><label><input type="checkbox" id="disable-extended">Disable extended features (local_mobile)</label></p>
+                <p><input type="button" id="rotate" value="Rotate device"></p>
+            </div>
+            <h3>CSS Injection</h3>
+            <div>
+                <input type="url" id="css-url" value="" placeholder="CSS URL" style="width: 100%"><br/>
+                <textarea id="css-text" placeholder="CSS code" style="width: 100%"></textarea><br/>
+                <input type="button" id="inject-css" value="Start injecting">&nbsp;&nbsp;
+                <input type="button" id="stop-inject-css" value="Stop injecting"><br/>
+                <input type="button" id="reset-css" value="Reset CSS">
+            </div>
+            <h3>Push notifications</h3>
+            <div>
+            </div>
+            <h3>Intents / Open with</h3>
+            <div>
+            </div>
+            <h3>Log</h3>
+            <div id="log">
+            </div>
+            <h3>Settings</h3>
+            <div>
+
+            </div>
+        </options>
     </body>
 </html>
