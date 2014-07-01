@@ -2,6 +2,34 @@ window.MOODLE_MOBILE_SIMULATOR = 1;
 
 var MMS = {
 
+    loadPopupForm: function(fields, prefix) {
+        var form ="<form> \
+        <fieldset>";
+
+        $.each(fields, function(i,f) {
+            form += '<div><label for="' + prefix + i + '">' + i + '</label> \
+            <input type="' + f + '" id="' + prefix + i + '" class="text ui-widget-content ui-corner-all"></div>';
+        });
+
+        form += "</fieldset> \
+          </form>";
+        var dialog = $("#add-form").html(form).dialog(
+            {
+                modal: true,
+                buttons: {
+                    "Add site": function() {
+                        var name = $("#newsite-name").val();
+                        var url = $("#newsite-url").val();
+                        var username = $("#newsite-username").val();
+                        var password = $("#newsite-password").val();
+
+                        MMS.addSite(name, url, username, password);
+                        dialog.dialog("close");
+                    }
+                }
+            }
+        );
+    },
 
     /**
      * Load sites in the settings section
@@ -37,6 +65,39 @@ var MMS = {
             localStorage.setItem("mm-sites", sites);
         }
         // Reload sites.
+        MMS.loadSites();
+    },
+
+    displayAddSiteForm: function() {
+        var fields = {
+            name: "text",
+            url: "text",
+            username: "text",
+            password: "text"
+        };
+        MMS.loadPopupForm(fields, "newsite-");
+    },
+
+    displayAddAppForm: function() {
+        var fields = {
+            name: "text",
+            url: "text"
+        };
+        MMS.loadPopupForm(fields, "newapp-");
+    },
+
+    addSite: function(name, url, username, password) {
+        sites = localStorage.getItem('mms-sites');
+        if (!sites) {
+            sites = [];
+        }
+        sites.push({
+            name: name,
+            url: url,
+            username: username,
+            password: password
+        });
+        localStorage.setItem("mms-sites", sites);
         MMS.loadSites();
     },
 
@@ -273,6 +334,10 @@ $(document).ready(function(){
 
     $("#add-site").on("click", function() {
         MMS.displayAddSiteForm();
+    });
+
+    $("#add-app").on("click", function() {
+        MMS.displayAddAppForm();
     });
 
 });
