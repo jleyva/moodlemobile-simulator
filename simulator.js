@@ -478,6 +478,21 @@ var MMS = {
         );
     },
 
+    sendPushNotification: function() {
+        var app = MMS.getApp();
+
+        if(!app) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        data = JSON.parse($("#payload-notification").val());
+        data.date = app.util.timestamp();
+        data.site = app.config.current_site.id;
+
+        app.plugins.notifications.APNSsaveAndDisplay(data);
+    },
+
     attachHandlers: function() {
         $("#run").on("click", MMS.launchApp);
         $("#reset").on("click", MMS.resetApp);
@@ -498,7 +513,7 @@ var MMS = {
         $("#app-templates").selectmenu(
         {
             change: function( event, data ) {
-                currentTemplate = data.item.value;
+                MMS.currentTemplate = data.item.value;
                 MMS.loadTemplate(MMS.currentTemplate);
            }
         });
@@ -524,6 +539,8 @@ var MMS = {
         });
 
         $("#calculate-space").on("click", MMS.calculateSpaceUsage);
+
+        $("#send-push").on("click", MMS.sendPushNotification);
     },
 
     init: function() {
