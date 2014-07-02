@@ -2,6 +2,29 @@ window.MOODLE_MOBILE_SIMULATOR = 1;
 
 var MMS = {
 
+    devices: {
+        iPhone4: {
+            width: 320,
+            height: 480
+        },
+        iPhone5: {
+            width: 320,
+            height: 568
+        },
+        iPad3: {
+            width: 768,
+            height: 1024
+        },
+        Nexus4: {
+            width: 384,
+            height: 640
+        },
+        Nexus7: {
+            width: 800,
+            height: 1280
+        },
+    },
+
     error: function(m) {
         window.alert(m);
     },
@@ -114,6 +137,7 @@ var MMS = {
 
         MMS.loadSitesList(sites);
         MMS.loadSitesSelector(sites);
+        MMS.sites = sites;
         return sites;
     },
 
@@ -128,10 +152,12 @@ var MMS = {
 
     loadSitesSelector: function(sites) {
         var site = $("#site").empty();
+        $("#site").selectmenu({width: "120px"});
         $.each(sites, function(index, settings) {
             site.append($("<option />").val(index).text(settings.name));
         });
-        $("#site").selectmenu("refresh");
+        $("#site").selectmenu("destroy").selectmenu({width: "120px"});
+
     },
 
     deleteSite: function(index) {
@@ -161,10 +187,10 @@ var MMS = {
             name: "text",
             url: "text"
         };
-        MMS.loadPopupForm(fields, "newapp-", "mms-apps");
+        MMS.loadPopupForm(fields, "newapp-", MMS.addApp);
     },
 
-    addSite: function(name, url, username, password) {
+    addSite: function() {
 
         var name = $("#newsite-name").val();
         var url = $("#newsite-url").val();
@@ -187,6 +213,76 @@ var MMS = {
         MMS.loadSites();
     },
 
+
+    addApp: function() {
+
+        var name = $("#newapp-name").val();
+        var url = $("#newapp-url").val();
+
+        apps = localStorage.getItem('mms-apps');
+        if (!apps) {
+            apps = [];
+        } else {
+            apps = JSON.parse(apps);
+        }
+        apps.push({
+            name: name,
+            url: url
+        });
+        localStorage.setItem("mms-apps", JSON.stringify(apps));
+        MMS.loadApps();
+    },
+
+    /**
+     * Load apps in the settings section
+     */
+    loadApps: function() {
+
+        // Loading sites and apps.
+        apps = localStorage.getItem('mms-apps');
+        if (!apps) {
+            apps = [];
+        } else {
+            apps = JSON.parse(apps);
+        }
+
+        MMS.loadAppsList(apps);
+        MMS.loadAppsSelector(apps);
+        return apps;
+    },
+
+    loadAppsList: function(apps) {
+        var appList = '';
+        $.each(apps, function(i, s) {
+            appList += '<li> ' + s.name + ' <a data-appid="' + i + '" href="#" title="Delete this app"><span class="ui-icon ui-icon-circle-close"></span></a></li>';
+        });
+
+        $("#tabs-apps ul").empty().append(appList);
+    },
+
+    loadAppsSelector: function(sites) {
+        var app = $("#app").empty();
+        $("#app").selectmenu({width: "120px"});
+
+        $.each(apps, function(index, settings) {
+            app.append($("<option />").val(settings.url).text(settings.name));
+        });
+        $("#app").selectmenu("destroy").selectmenu({width: "120px"});
+
+    },
+
+    deleteApp: function(index) {
+        apps = localStorage.getItem('mms-apps');
+        if (apps) {
+            apps = JSON.parse(apps);
+            console.log(index);
+            apps.splice(index, 1);
+            localStorage.setItem("mms-apps", JSON.stringify(apps));
+        }
+        // Reload apps.
+        MMS.loadApps();
+    },
+
     /**
      * Load jQuery UI widgets
      */
@@ -202,35 +298,55 @@ var MMS = {
         $(document).tooltip();
     },
 
+    resetApp: function(e) {
+        var appURL = $("#app").val().replace("/index.html", "");
+        MMS.iframe.attr("src", appURL + "/reset.html");
+    },
+
+    launchApp: function(e) {
+        var sel = $("#device").val();
+        $("#viewport-container").css("width", MMS.devices[sel].width).css("height", MMS.devices[sel].height);
+        $("#device-container").css("width", MMS.devices[sel].width + 40);
+
+        // Force reset of local database/storage.
+
+        var appURL = $("#app").val().replace("/index.html", "");
+        MMS.iframe.attr("src", appURL + "/index.html");
+
+        MMS.iframe.load(function() {
+            var data;
+
+            var fd = MMS.iframe[0].contentWindow;
+            var doc = fd.document;
+            var siteId = $("#site").val();
+
+            if (MMS.sites[siteId]) {
+                data = MMS.sites[siteId];
+
+                setTimeout(function() {
+                    $('#url', doc).val(data.url);
+                    $('#username', doc).val(data.username);
+                    $('#password', doc).val(data.password);
+                    if ($("#disable-extended").prop('checked')) {
+                        fd.MMS.config.wsextservice = "";
+                    }
+                }, 1500);
+            }
+        });
+    },
+
     init: function() {
 
         // Styles code.
         MMS.loadUI();
 
-        var sites = MMS.loadSites();
+        // Attach handlers.
 
-        var devices = {
-            iPhone4: {
-                width: 320,
-                height: 480
-            },
-            iPhone5: {
-                width: 320,
-                height: 568
-            },
-            iPad3: {
-                width: 768,
-                height: 1024
-            },
-            Nexus4: {
-                width: 384,
-                height: 640
-            },
-            Nexus7: {
-                width: 800,
-                height: 1280
-            },
-        };
+        MMS.iframe = $("#moodle-site");
+
+        var sites = MMS.loadSites();
+        var apps = MMS.loadApps();
+
         var versions = {
             master_dev: "http://prototype.moodle.net/mobile/app/master",
             v143: "http://prototype.moodle.net/mobile/app/v143",
@@ -238,49 +354,22 @@ var MMS = {
             local_path: ""
         };
         var device = $("#device");
-        var container = $("#device-container");
-        var viewport = $("#viewport-container");
+
         var iframe = $("#moodle-site");
         var site = $("#site");
         var head, doc, intervalCSS;
 
-        $("#run").on("click", function(e) {
-            var sel = device.val();
-            viewport.css("width", devices[sel].width).css("height", devices[sel].height);
-            container.css("width", devices[sel].width + 40);
-            // Force reset of local database/storage.
-            if (version.val() == "local_path") {
-                iframe.attr("src", $("#local_path").val() + "/index.html");
-            } else {
-                iframe.attr("src", versions[version.val()] + "/index.html");
-            }
-            iframe.load(function() {
-                var data;
-
-                var fd = iframe[0].contentWindow;
-                var doc = fd.document;
-                var siteId = site.val();
-                data = sites[siteId];
-
-                setTimeout(function() {
-                    $('#url', doc).val(data.url);
-                    $('#username', doc).val(data.username);
-                    $('#password', doc).val(data.password);
-                    if ($("#disable-extended").prop('checked')) {
-                        fd.MM.config.wsextservice = "";
-                    }
-                }, 2000);
-            });
-        });
+        $("#run").on("click", MMS.launchApp);
+        $("#reset").on("click", MMS.resetApp);
 
         $("#rotate").on("click", function(e) {
             var sel = device.val();
             if (viewport.width() != devices[sel].width) {
                 viewport.css("width", devices[sel].width).css("height", devices[sel].height);
-                container.css("width", devices[sel].width + 40);
+                $("#device-container").css("width", devices[sel].width + 40);
             } else {
                 viewport.css("width", devices[sel].height).css("height", devices[sel].width);
-                container.css("width", devices[sel].height + 40);
+                $("#device-container").css("width", devices[sel].height + 40);
             }
         });
 
@@ -363,14 +452,11 @@ var MMS = {
             }
         });
 
-        $.each(devices, function(name, settings) {
+        $.each(MMS.devices, function(name, settings) {
             device.append($("<option />").val(name).text(name));
         });
+        device.selectmenu("refresh");
 
-        var version = $("#version");
-        $.each(versions, function(name, settings) {
-            version.append($("<option />").val(name).text(name));
-        });
 
         var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
         var isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
@@ -381,19 +467,19 @@ var MMS = {
 
         // Load sites in the settings widget.
         MMS.loadSitesList(sites);
+        MMS.loadAppsList(apps);
 
         // Handlers.
         $("#tabs-sites").on("click", "a", function() {
             MMS.deleteSite($(this).data("siteid"));
         });
-
-        $("#add-site").on("click", function() {
-            MMS.displayAddSiteForm();
+        $("#tabs-apps").on("click", "a", function() {
+            MMS.deleteApp($(this).data("appid"));
         });
 
-        $("#add-app").on("click", function() {
-            MMS.displayAddAppForm();
-        });
+        $("#add-site").on("click", MMS.displayAddSiteForm);
+
+        $("#add-app").on("click", MMS.displayAddAppForm);
 
 
         var currentTemplate = "";
