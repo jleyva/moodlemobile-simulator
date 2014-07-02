@@ -460,6 +460,24 @@ var MMS = {
         }
     },
 
+    calculateSpaceUsage: function() {
+        var app = MMS.getApp();
+
+        if(!app) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        app.fs.directorySize("/",
+            function(size) {
+                window.alert(app.util.bytesToSize(size, 2));
+            },
+            function() {
+                MMS.error("Error calculating directory size");
+            }
+        );
+    },
+
     attachHandlers: function() {
         $("#run").on("click", MMS.launchApp);
         $("#reset").on("click", MMS.resetApp);
@@ -505,6 +523,7 @@ var MMS = {
             clearInterval(MMS.intervalCSS);
         });
 
+        $("#calculate-space").on("click", MMS.calculateSpaceUsage);
     },
 
     init: function() {
