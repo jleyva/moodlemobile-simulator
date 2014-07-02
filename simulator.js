@@ -38,6 +38,16 @@ var MMS = {
         return iframe[0].contentWindow.MM;
     },
 
+
+    getAppDocument: function() {
+        var iframe = $("#moodle-site");
+
+        if (!iframe[0] || !iframe[0].contentWindow || !iframe[0].contentWindow.document) {
+            return false;
+        }
+        return iframe[0].contentWindow.document;
+    },
+
     loadAppTemplates: function() {
         var app = MMS.getApp();
 
@@ -248,6 +258,8 @@ var MMS = {
 
         MMS.loadAppsList(apps);
         MMS.loadAppsSelector(apps);
+
+        MMS.apps = apps;
         return apps;
     },
 
@@ -287,6 +299,13 @@ var MMS = {
      * Load jQuery UI widgets
      */
     loadUI: function() {
+
+        // Load devices
+        var device = $("#device");
+        $.each(MMS.devices, function(name, settings) {
+            device.append($("<option />").val(name).text(name));
+        });
+
         $( "input[type=submit], input[type=button], button" ).button();
         $("select").selectmenu({ width: 120 });
         $("#options-menu").accordion(
@@ -296,11 +315,39 @@ var MMS = {
         );
         $("#setting-tabs").tabs();
         $(document).tooltip();
+
+        // Load sites in the settings widget.
+        MMS.loadSitesList(MMS.sites);
+        MMS.loadAppsList(MMS.apps);
     },
 
     resetApp: function(e) {
         var appURL = $("#app").val().replace("/index.html", "");
         MMS.iframe.attr("src", appURL + "/reset.html");
+    },
+
+    resetCSS: function(e) {
+        var doc = MMS.getAppDocument();
+
+        if(!doc) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        var head = $('head',doc);
+        var exists;
+
+        var cssURL = $('#css-url').val();
+        exists = $('#emulator-css-url', head);
+        if (exists) {
+            exists.remove();
+        }
+
+        var css = $('#css-text').val();
+        exists = $('#emulator-css-text', head);
+        if (exists) {
+            exists.remove();
+        }
     },
 
     launchApp: function(e) {
@@ -335,141 +382,88 @@ var MMS = {
         });
     },
 
-    init: function() {
+    rotate: function(e) {
+        var sel = $("#device").val();
+        var viewport = $("#viewport-container");
 
-        // Styles code.
-        MMS.loadUI();
+        if (viewport.width() != MMS.devices[sel].width) {
+            viewport.css("width", MMS.devices[sel].width).css("height", MMS.devices[sel].height);
+            $("#device-container").css("width", MMS.devices[sel].width + 40);
+        } else {
+            viewport.css("width", MMS.devices[sel].height).css("height", MMS.devices[sel].width);
+            $("#device-container").css("width", MMS.devices[sel].height + 40);
+        }
+    },
 
-        // Attach handlers.
+    forceOffline: function(e) {
+        var app = MMS.getApp();
 
-        MMS.iframe = $("#moodle-site");
+        if(!app) {
+            e.preventDefault();
+            MMS.error("App not launched or loaded");
+            return;
+        }
 
-        var sites = MMS.loadSites();
-        var apps = MMS.loadApps();
+        if ($(this).prop('checked')) {
+            $("#device-status").html('<span style="color: red">OFFLINE</span>');
+            app.setConfig('dev_offline', true);
+        } else {
+            $("#device-status").html("");
+            app.setConfig('dev_offline', false);
+        }
 
-        var versions = {
-            master_dev: "http://prototype.moodle.net/mobile/app/master",
-            v143: "http://prototype.moodle.net/mobile/app/v143",
-            mock: "http://prototype.moodle.net/mobile/app/mock",
-            local_path: ""
-        };
-        var device = $("#device");
+    },
 
-        var iframe = $("#moodle-site");
-        var site = $("#site");
-        var head, doc, intervalCSS;
+    disableExtendedFeatures: function(e) {
+        var app = MMS.getApp();
+        if (app && app.config) {
+            if ($("#disable-extended").prop('checked')) {
+                app.config.wsextservice = "";
+            } else {
+                app.config.wsextservice = "local_mobile";
+            }
+        } else {
+            e.preventDefault();
+            MMS.error("App not launched or loaded");
+        }
+    },
 
+    injectCSS: function() {
+        var doc = MMS.getAppDocument();
+        var exits;
+
+        if(!doc) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        var head = $('head', doc);
+
+        var cssURL = $('#css-url').val();
+        exists = $('#emulator-css-url', head);
+        if (exists) {
+            exists.remove();
+        }
+        if (cssURL) {
+            // Avoid cache.
+            cssURL += '?v=' + Math.random();
+            head.append($('<link>').attr('id', 'emulator-css-url').attr('rel', 'stylesheet').attr('href', cssURL));
+        }
+
+        var css = $('#css-text').val();
+        exists = $('#emulator-css-text', head);
+        if (exists) {
+            exists.remove();
+        }
+        if (css) {
+            head.append($("<style></style>").attr('id', 'emulator-css-text').html(css));
+        }
+    },
+
+    attachHandlers: function() {
         $("#run").on("click", MMS.launchApp);
         $("#reset").on("click", MMS.resetApp);
 
-        $("#rotate").on("click", function(e) {
-            var sel = device.val();
-            if (viewport.width() != devices[sel].width) {
-                viewport.css("width", devices[sel].width).css("height", devices[sel].height);
-                $("#device-container").css("width", devices[sel].width + 40);
-            } else {
-                viewport.css("width", devices[sel].height).css("height", devices[sel].width);
-                $("#device-container").css("width", devices[sel].height + 40);
-            }
-        });
-
-        $("#disable-extended").on("click", function(e) {
-            var fd = iframe[0].contentWindow;
-            if (fd.MM && fd.MM.config) {
-                if ($("#disable-extended").prop('checked')) {
-                    fd.MM.config.wsextservice = "";
-                } else {
-                    fd.MM.config.wsextservice = "local_mobile";
-                }
-            }
-        });
-
-        $("#force-offline").on("click", function(e) {
-            var fd = iframe[0].contentWindow;
-            if (fd.MM) {
-                if ($(this).prop('checked')) {
-                    $("#device-status").html('<span style="color: red">OFFLINE</span>');
-                    fd.MM.setConfig('dev_offline', true);
-                } else {
-                    $("#device-status").html("");
-                    fd.MM.setConfig('dev_offline', false);
-                }
-            }
-        });
-
-        function injectCSS() {
-            var exits;
-            var cssURL = $('#css-url').val();
-            exists = $('#emulator-css-url', head);
-            if (exists) {
-                exists.remove();
-            }
-            if (cssURL) {
-                // Avoid cache.
-                cssURL += '?v=' + Math.random();
-                head.append($('<link>').attr('id', 'emulator-css-url').attr('rel', 'stylesheet').attr('href', cssURL));
-            }
-
-            var css = $('#css-text').val();
-            exists = $('#emulator-css-text', head);
-            if (exists) {
-                exists.remove();
-            }
-            if (css) {
-                head.append($("<style></style>").attr('id', 'emulator-css-text').html(css));
-            }
-        }
-
-        $("#inject-css").on("click", function(e) {
-            doc = iframe[0].contentWindow.document;
-            head = $('head',doc);
-            $("#log").html("CSS injection started... every 15 secs CSS is reloaded");
-
-            injectCSS();
-            intervalCSS = setInterval(function() { injectCSS(); }, 15000);
-        });
-
-        $("#stop-inject-css").on("click", function(e) {
-            clearInterval(intervalCSS);
-            $("#log").html("CSS injection stopped");
-        });
-
-        $("#reset-css").on("click", function(e) {
-            var doc = iframe[0].contentWindow.document;
-            var head = $('head',doc);
-            var exists;
-
-            var cssURL = $('#css-url').val();
-            exists = $('#emulator-css-url', head);
-            if (exists) {
-                exists.remove();
-            }
-
-            var css = $('#css-text').val();
-            exists = $('#emulator-css-text', head);
-            if (exists) {
-                exists.remove();
-            }
-        });
-
-        $.each(MMS.devices, function(name, settings) {
-            device.append($("<option />").val(name).text(name));
-        });
-        device.selectmenu("refresh");
-
-
-        var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        var isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
-
-        if (!isChrome && !isSafari) {
-            window.alert("You should run this emulator in a WebKit browser (Chrome or Safari)");
-        }
-
-        // Load sites in the settings widget.
-        MMS.loadSitesList(sites);
-        MMS.loadAppsList(apps);
-
-        // Handlers.
         $("#tabs-sites").on("click", "a", function() {
             MMS.deleteSite($(this).data("siteid"));
         });
@@ -481,22 +475,61 @@ var MMS = {
 
         $("#add-app").on("click", MMS.displayAddAppForm);
 
-
-        var currentTemplate = "";
+        MMS.currentTemplate = "";
         $("#load-templates").on("click", MMS.loadAppTemplates);
         $("#app-templates").selectmenu(
         {
             change: function( event, data ) {
                 currentTemplate = data.item.value;
-                MMS.loadTemplate(currentTemplate);
+                MMS.loadTemplate(MMS.currentTemplate);
            }
         });
         $("#modify-template").on("click", function() {
-            MMS.modifyTemplate(currentTemplate);
+            MMS.modifyTemplate(MMS.currentTemplate);
         });
+
+        $("#reset-css").on("click", MMS.resetCSS);
+
+        $("#rotate").on("click", MMS.rotate);
+
+        $("#force-offline").on("click", MMS.forceOffline);
+
+        $("#disable-extended").on("click", MMS.disableExtendedFeatures);
+
+        $("#inject-css").on("click", function(e) {
+            MMS.injectCSS();
+            MMS.intervalCSS = setInterval(function() { MMS.injectCSS(); }, 15000);
+        });
+
+        $("#stop-inject-css").on("click", function(e) {
+            clearInterval(MMS.intervalCSS);
+        });
+
+    },
+
+    init: function() {
+
+        // Load sites and apps from internal storage.
+        MMS.loadSites();
+        MMS.loadApps();
+
+        // Load the UI and enhace it with jQuery UI.
+        MMS.loadUI();
+
+        MMS.iframe = $("#moodle-site");
+
+        // Attach handlers to buttons.
+        MMS.attachHandlers();
     }
 
 };
+
+var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+var isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+
+if (!isChrome && !isSafari) {
+    window.alert("You should run this emulator in a WebKit browser (Chrome or Safari)");
+}
 
 $(document).ready(function(){
     MMS.init();
