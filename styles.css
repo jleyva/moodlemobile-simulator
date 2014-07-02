@@ -49,6 +49,10 @@ body {
     float: right;
 }
 
+.ul-clean li {
+    clear: both;
+}
+
 /* jQuery UI changes*/
 
 .ui-accordion .ui-accordion-content {
