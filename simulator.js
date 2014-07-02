@@ -350,6 +350,45 @@ var MMS = {
         }
     },
 
+    _replaceLogFunction: function() {
+        var app = MMS.getApp();
+
+        var originalRemoveMethod = app.log;
+
+        app.log = function(text, component) {
+            var show = true;
+
+            if (!component) {
+                component = "Core";
+            }
+
+            var cFilter = $("#component-filter").val().toLowerCase();
+            var tFilter = $("#text-filter").val().toLowerCase();
+
+            if (cFilter && component.toLowerCase().indexOf(cFilter) === -1) {
+                show = false;
+            }
+
+            if (show && tFilter && text.toLowerCase().indexOf(tFilter) === -1) {
+                show = false;
+            }
+
+            if (show) {
+                $("#log").prepend(component + ": " + text + "<br /><br />");
+            }
+
+            // Execute the original method.
+            originalRemoveMethod.apply( this, arguments );
+        };
+    },
+
+    cleanLog: function(e) {
+        e.preventDefault();
+        $("#log").empty();
+        $("#component-filter").val("");
+        $("#text-filter").val("");
+    },
+
     launchApp: function(e) {
         var sel = $("#device").val();
         $("#viewport-container").css("width", MMS.devices[sel].width).css("height", MMS.devices[sel].height);
@@ -378,6 +417,8 @@ var MMS = {
                         fd.MMS.config.wsextservice = "";
                     }
                 }, 1500);
+
+                MMS._replaceLogFunction();
             }
         });
     },
@@ -541,6 +582,8 @@ var MMS = {
         $("#calculate-space").on("click", MMS.calculateSpaceUsage);
 
         $("#send-push").on("click", MMS.sendPushNotification);
+
+        $("#clean-log").on("click", MMS.cleanLog);
     },
 
     init: function() {
