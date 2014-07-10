@@ -273,7 +273,12 @@ var MMS = {
     loadAppsList: function(apps) {
         var appList = '';
         $.each(apps, function(i, s) {
-            appList += '<li> ' + s.name + ' <a data-appid="' + i + '" href="#" title="Delete this app"><span class="ui-icon ui-icon-circle-close"></span></a></li>';
+            if (typeof(s.deleteable) == "undefined" || s.deleteable) {
+                deleteLink = ' <a data-appid="' + i + '" href="#" title="Delete this app"><span class="ui-icon ui-icon-circle-close"></span></a>';
+            } else {
+                deleteLink = "";
+            }
+            appList += '<li> ' + s.name + deleteLink + '</li>';
         });
 
         $("#tabs-apps ul").empty().append(appList);
