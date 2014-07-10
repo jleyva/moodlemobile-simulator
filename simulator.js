@@ -145,6 +145,10 @@ var MMS = {
             sites = JSON.parse(sites);
         }
 
+        if (MMS.config.sites.length > 0) {
+            sites = sites.concat(MMS.config.sites);
+        }
+
         MMS.loadSitesList(sites);
         MMS.loadSitesSelector(sites);
         MMS.sites = sites;
@@ -154,7 +158,10 @@ var MMS = {
     loadSitesList: function(sites) {
         var siteList = '';
         $.each(sites, function(i, s) {
-            siteList += '<li> ' + s.name + ' <a data-siteid="' + i + '" href="#" title="Delete this site"><span class="ui-icon ui-icon-circle-close"></span></a></li>';
+            if (!s.deleteable) {
+                deleteLink = '<a data-siteid="' + i + '" href="#" title="Delete this site"><span class="ui-icon ui-icon-circle-close"></span></a>';
+            }
+            siteList += '<li> ' + s.name + deleteLink + ' </li>';
         });
 
         $("#tabs-sites ul").empty().append(siteList);
@@ -254,6 +261,10 @@ var MMS = {
             apps = [];
         } else {
             apps = JSON.parse(apps);
+        }
+
+        if (MMS.config.apps.length > 0) {
+            apps = apps.concat(MMS.config.apps);
         }
 
         MMS.loadAppsList(apps);
@@ -587,18 +598,26 @@ var MMS = {
     },
 
     init: function() {
+        // Load config file.
+        $.ajax({
+            type: 'GET',
+            url: 'config.json',
+            dataType: 'json',
+            success: function(data) {
+                MMS.config = data;
+                // Load sites and apps from internal storage.
+                MMS.loadSites();
+                MMS.loadApps();
 
-        // Load sites and apps from internal storage.
-        MMS.loadSites();
-        MMS.loadApps();
+                // Load the UI and enhace it with jQuery UI.
+                MMS.loadUI();
 
-        // Load the UI and enhace it with jQuery UI.
-        MMS.loadUI();
+                MMS.iframe = $("#moodle-site");
 
-        MMS.iframe = $("#moodle-site");
-
-        // Attach handlers to buttons.
-        MMS.attachHandlers();
+                // Attach handlers to buttons.
+                MMS.attachHandlers();
+            }
+        });
     }
 
 };
