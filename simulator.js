@@ -133,14 +133,6 @@ var MMS = {
         sites = localStorage.getItem('mms-sites');
         if (!sites) {
             sites = [];
-            sites.push(
-                {
-                    name: "Moodle School Demo",
-                    url: "http://school.moodle.net",
-                    username: "student",
-                    password: "moodle",
-                }
-            );
         } else {
             sites = JSON.parse(sites);
         }
@@ -158,8 +150,10 @@ var MMS = {
     loadSitesList: function(sites) {
         var siteList = '';
         $.each(sites, function(i, s) {
-            if (!s.deleteable) {
+            if (typeof(s.deleteable) == "undefined" || s.deleteable) {
                 deleteLink = '<a data-siteid="' + i + '" href="#" title="Delete this site"><span class="ui-icon ui-icon-circle-close"></span></a>';
+            } else {
+                deleteLink = "";
             }
             siteList += '<li> ' + s.name + deleteLink + ' </li>';
         });
@@ -171,7 +165,9 @@ var MMS = {
         var site = $("#site").empty();
         $("#site").selectmenu({width: "120px"});
         $.each(sites, function(index, settings) {
-            site.append($("<option />").val(index).text(settings.name));
+            if (settings && settings.name) {
+                site.append($("<option />").val(index).text(settings.name));
+            }
         });
         $("#site").selectmenu("destroy").selectmenu({width: "120px"});
 
@@ -288,7 +284,9 @@ var MMS = {
         $("#app").selectmenu({width: "120px"});
 
         $.each(apps, function(index, settings) {
-            app.append($("<option />").val(settings.url).text(settings.name));
+            if (settings && settings.name) {
+                app.append($("<option />").val(settings.url).text(settings.name));
+            }
         });
         $("#app").selectmenu("destroy").selectmenu({width: "120px"});
 

@@ -1,4 +1,19 @@
 {
-    "sites": [],
+    "sites": [
+        {
+            "name": "Moodle Demo Student",
+            "url": "http://school.moodle.net",
+            "username": "student",
+            "password": "moodle",
+            "deleteable": 0
+        },
+        {
+            "name": "Moodle Demo Teacher",
+            "url": "http://school.moodle.net",
+            "username": "teacher",
+            "password": "moodle",
+            "deleteable": 0
+        }
+    ],
     "apps": []
 }
