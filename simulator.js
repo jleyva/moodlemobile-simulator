@@ -548,6 +548,63 @@ var MMS = {
         app.plugins.notifications.APNSsaveAndDisplay(data);
     },
 
+    loadTheme: function() {
+        var app = MMS.getApp();
+
+        var themeURL = $("#theme-url").val();
+
+        if (!themeURL) {
+            MMS.error("Enter a valid theme URL");
+            return;
+        }
+
+        if(!app) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        if (typeof(app.config.current_site) == "undefined" || !app.config.current_site) {
+            MMS.error("You must be logged in a site for loading a Theme");
+            return;
+        }
+
+        // Call the app API.
+        app.setConfig('sync_css_on', true);
+        app.config.current_site.mobilecssurl = themeURL;
+        app.sync.css();
+    },
+
+    deleteTheme: function() {
+        var app = MMS.getApp();
+
+        if(!app) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        if (typeof(app.config.current_site) == "undefined" || !app.config.current_site) {
+            MMS.error("You must be logged in a site for loading a Theme");
+            return;
+        }
+
+        var doc = MMS.getAppDocument();
+
+        if(!doc) {
+            MMS.error("App not launched or loaded");
+            return;
+        }
+
+        // Call the app API.
+        app.config.current_site.mobilecssurl = "";
+        app.cache.removeElement("css");
+
+        var css = $('#mobilecssurl',doc);
+        console.log(css);
+        css.empty();
+
+    },
+
+
     attachHandlers: function() {
         $("#run").on("click", MMS.launchApp);
         $("#reset").on("click", MMS.resetApp);
@@ -598,7 +655,12 @@ var MMS = {
         $("#send-push").on("click", MMS.sendPushNotification);
 
         $("#clean-log").on("click", MMS.cleanLog);
+
+        $("#load-theme").on("click", MMS.loadTheme);
+
+        $("#delete-theme").on("click", MMS.deleteTheme);
     },
+
 
     init: function() {
         // Load config file.

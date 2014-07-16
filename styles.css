@@ -53,6 +53,10 @@ body {
     clear: both;
 }
 
+input[type=url] {
+    width: 100%;
+}
+
 /* jQuery UI changes*/
 
 .ui-accordion .ui-accordion-content {
