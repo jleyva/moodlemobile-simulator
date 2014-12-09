@@ -38,6 +38,14 @@ var MMS = {
         return iframe[0].contentWindow.MM;
     },
 
+    getAppWindow: function() {
+        var iframe = $("#moodle-site");
+
+        if (!iframe[0] || !iframe[0].contentWindow) {
+            return false;
+        }
+        return iframe[0].contentWindow;
+    },
 
     getAppDocument: function() {
         var iframe = $("#moodle-site");
@@ -544,8 +552,9 @@ var MMS = {
         data = JSON.parse($("#payload-notification").val());
         data.date = app.util.timestamp();
         data.site = app.config.current_site.id;
+        data.payload.site = app.config.current_site.id;
 
-        app.plugins.notifications.APNSsaveAndDisplay(data);
+        app.plugins.notifications.GCMsaveAndDisplay(data);
     },
 
     loadTheme: function() {
