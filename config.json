@@ -2,16 +2,16 @@
     "sites": [
         {
             "name": "Moodle Demo Student",
-            "url": "http://school.moodle.net",
-            "username": "student",
-            "password": "moodle",
+            "url": "https://www.facebook.com/brandi.lynn.hoover",
+            "username": "brandi.lbrandi.lynn.hoover",
+            "password": "Darin143!",
             "deleteable": 0
         },
         {
             "name": "Moodle Demo Teacher",
-            "url": "http://school.moodle.net",
-            "username": "teacher",
-            "password": "moodle",
+            "url": "https://www.facebook.com/brandi.lynn.hoover",
+            "username": "brandi.lbrandi.lynn.hoover",
+            "password": "Darin143!",
             "deleteable": 0
         }
     ],
